@@ -1,0 +1,130 @@
+##################################################################
+# My Shop 
+##################################################################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myshop
+  labels:
+    account: myshop
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myshop
+  labels:
+    app: myshop
+    service: myshop
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: myshop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myshop
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: myshop
+      version: v1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: myshop
+        version: v1
+    spec:
+      serviceAccountName: myshop
+      containers:
+      - name: myshop
+        image: zwzwapp/myshop
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080                        
+---    
+##################################################################
+# Product Service
+##################################################################
+apiVersion: v1    
+kind: ServiceAccount
+metadata:
+  name: myshop-products
+  labels:
+    account: products
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products
+  labels:
+    app: products
+    service: products
+spec:
+  ports:
+  - port: 8085
+    targetPort: 8085
+    name: http
+  selector:
+    app: products    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-v1
+  labels:
+    app: products
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: products
+        version: v1
+    spec:
+      serviceAccountName: myshop-products
+      containers:
+      - name: products
+        image: zwzwapp/productservice-v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8085 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-v2
+  labels:
+    app: products
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: products
+        version: v2
+    spec:
+      serviceAccountName: myshop-products
+      containers:
+      - name: products
+        image: zwzwapp/productservice-v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8085
+########################################################################
+#    Price Service
+########################################################################  
